@@ -36,7 +36,8 @@ st.set_page_config(
 # ==========================================================
 # GEMINI CONFIG
 # ==========================================================
-genai.configure(api_key="AIzaSyAdNYlCRqzxjWQ485WHAzmLS6kz27vhnPE")
+import os
+genai.configure(api_key=os.getenv("AIzaSyAdNYlCRqzxjWQ485WHAzmLS6kz27vhnPE"))
 
 PRIMARY_MODEL = "models/gemini-2.5-flash"   # More stable model
 
@@ -1542,3 +1543,4 @@ st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2
 ##    else:
 ##        st.markdown(f"**AI Assistant:** {chat['assistant']}")
 ##
+
