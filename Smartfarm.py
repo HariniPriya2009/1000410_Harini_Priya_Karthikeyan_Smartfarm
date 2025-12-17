@@ -1,13 +1,20 @@
 import streamlit as st
 import sqlite3
 import time
-import os
 import google.generativeai as genai
 
 # ==========================================================
-# GEMINI CLIENT SETUP (FIXED)
+# CHECK GEMINI API KEY
+# ==========================================================
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("❌ GEMINI_API_KEY is missing in Streamlit secrets. Add it in `.streamlit/secrets.toml`.")
+    st.stop()
+
+# ==========================================================
+# GEMINI CLIENT SETUP
 # ==========================================================
 client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
+PRIMARY_MODEL = "gemini-2.5-flash"
 
 # ==========================================================
 # PAGE CONFIG
@@ -18,10 +25,8 @@ st.set_page_config(
     layout="centered"
 )
 
-PRIMARY_MODEL = "gemini-2.5-flash"
-
 # ==========================================================
-# SQLITE DATABASE FUNCTIONS (UNCHANGED)
+# SQLITE DATABASE FUNCTIONS
 # ==========================================================
 DB_FILE = "farmers.db"
 
@@ -57,7 +62,6 @@ def get_user(name):
     cursor.execute("SELECT * FROM farmers WHERE name = ?", (name,))
     row = cursor.fetchone()
     conn.close()
-
     if row:
         return {
             "name": row[0],
@@ -72,7 +76,7 @@ def get_user(name):
 init_db()
 
 # ==========================================================
-# PAGE STYLE (UNCHANGED)
+# PAGE STYLE
 # ==========================================================
 st.markdown("""
 <style>
@@ -90,13 +94,15 @@ body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
 """, unsafe_allow_html=True)
 
 # ==========================================================
-# AI CALL FUNCTION (FIXED, CLEAN, WORKING)
+# AI CALL FUNCTION
 # ==========================================================
 def get_ai_response(prompt, temperature, max_tokens):
     try:
         response = client.models.generate_content(
             model=PRIMARY_MODEL,
-            contents=prompt
+            contents=prompt,
+            temperature=temperature,
+            max_output_tokens=max_tokens
         )
         return response.text
     except Exception as e:
@@ -106,17 +112,13 @@ def get_ai_response(prompt, temperature, max_tokens):
 # SIDEBAR SETTINGS
 # ==========================================================
 st.sidebar.header("⚙️ AI Settings")
-
-temperature = st.sidebar.slider(
-    "Creativity (Temperature)", 0.0, 1.0, 0.5, 0.1
-)
-
+temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.5, 0.1)
 max_tokens = 2000
 st.sidebar.markdown(f"**Max Output Tokens:** {max_tokens}")
 st.sidebar.markdown("---")
 st.sidebar.info(
     "💡 **Tips:**\n"
-    "- Lower temperature = More consistent\n"
+    "- Lower temperature = More consistent answers\n"
     "- Higher tokens = Longer responses\n"
     "- Allow 3–5s between requests"
 )
@@ -141,7 +143,7 @@ if "current_user" not in st.session_state:
             if user:
                 st.session_state.current_user = name
                 st.success(f"Welcome back, {name}! 🌴")
-                st.rerun()
+                st.experimental_rerun()
             else:
                 st.error("User not found. Please sign up first.")
 
@@ -163,7 +165,7 @@ if "current_user" not in st.session_state:
                     add_user(name, district, age, language, farming_type, experience)
                     st.session_state.current_user = name
                     st.success("Profile created successfully! 🌿")
-                    st.rerun()
+                    st.experimental_rerun()
 
 # ==========================================================
 # MAIN APP
@@ -183,7 +185,6 @@ if "current_user" in st.session_state:
     }
 
     option = st.radio("Select mode:", ["🧠 Choose Challenge", "✍️ Ask My Own Question"])
-
     user_question = (
         challenges[st.selectbox("Select a challenge:", challenges)]
         if option == "🧠 Choose Challenge"
@@ -227,10 +228,9 @@ Question: {user_question}
     with col2:
         if st.button("Logout 🔒"):
             del st.session_state.current_user
-            st.rerun()
+            st.experimental_rerun()
 
 st.markdown(
     "<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini</center>",
     unsafe_allow_html=True
 )
-
