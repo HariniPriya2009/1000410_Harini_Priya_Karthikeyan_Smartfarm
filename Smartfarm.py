@@ -7,7 +7,7 @@ import google.generativeai as genai
 # ==========================================================
 # GEMINI CLIENT SETUP (FIXED)
 # ==========================================================
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 # ==========================================================
 # PAGE CONFIG
@@ -233,3 +233,4 @@ st.markdown(
     "<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini</center>",
     unsafe_allow_html=True
 )
+
