@@ -20,9 +20,12 @@
 
 
 import streamlit as st
-import google.generativeai as genai
 import sqlite3
 import time
+from google import genai
+import os
+
+client = genai.Client(api_key=os.getenv("AIzaSyAdNYlCRqzxjWQ485WHAzmLS6kz27vhnPE"))
 
 # ==========================================================
 # PAGE CONFIG
@@ -37,7 +40,7 @@ st.set_page_config(
 # GEMINI CONFIG
 # ==========================================================
 import os
-genai.configure(api_key=os.getenv("AIzaSyAdNYlCRqzxjWQ485WHAzmLS6kz27vhnPE"))
+##genai.configure(api_key=os.getenv("AIzaSyAdNYlCRqzxjWQ485WHAzmLS6kz27vhnPE"))
 
 PRIMARY_MODEL = "models/gemini-2.5-flash"   # More stable model
 
@@ -119,9 +122,19 @@ body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
 # AI CALL FUNCTION WITH RETRY LOGIC
 # ==========================================================
 def get_ai_response(prompt, temperature, max_tokens):
+    def get_ai_response(prompt, temperature, max_tokens):
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+        return response.text
+    except Exception as e:
+        return f"⚠️ Error: {e}"
+
     """Optimized & safe API call with retry logic and rate limit handling."""
     
-    config = genai.types.GenerationConfig(
+ '''   config = genai.types.GenerationConfig(
         temperature=temperature,
         max_output_tokens=max_tokens,
     )
@@ -141,7 +154,7 @@ def get_ai_response(prompt, temperature, max_tokens):
                     "HARASSMENT": "BLOCK_NONE", 
                     "HATE": "BLOCK_NONE"
                 }
-            )
+            )'''
             
             # Extract text from response
             parts = response.candidates[0].content.parts
@@ -319,6 +332,7 @@ Format your response as:
 
 # FOOTER
 st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2.0 Flash</center>", unsafe_allow_html=True)
+
 
 
 
