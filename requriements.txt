@@ -1,3 +1,7 @@
+streamlit
+sqlite3
+time
+google.generativeai as genai
 
 
 
