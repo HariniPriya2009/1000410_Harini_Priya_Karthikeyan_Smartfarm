@@ -122,7 +122,6 @@ body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
 # AI CALL FUNCTION WITH RETRY LOGIC
 # ==========================================================
 def get_ai_response(prompt, temperature, max_tokens):
-    def get_ai_response(prompt, temperature, max_tokens):
     try:
         response = client.models.generate_content(
             model="gemini-2.5-flash",
@@ -332,6 +331,7 @@ Format your response as:
 
 # FOOTER
 st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2.0 Flash</center>", unsafe_allow_html=True)
+
 
 
 
