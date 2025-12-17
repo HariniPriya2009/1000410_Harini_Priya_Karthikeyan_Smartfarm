@@ -131,29 +131,6 @@ def get_ai_response(prompt, temperature, max_tokens):
     except Exception as e:
         return f"⚠️ Error: {e}"
 
-    """Optimized & safe API call with retry logic and rate limit handling."""
-    
- '''   config = genai.types.GenerationConfig(
-        temperature=temperature,
-        max_output_tokens=max_tokens,
-    )
-
-    max_retries = 3
-    
-    for attempt in range(max_retries):
-        try:
-            # Add delay before each request
-            time.sleep(3)
-            
-            model = genai.GenerativeModel(PRIMARY_MODEL)
-            response = model.generate_content(
-                prompt,
-                generation_config=config,
-                safety_settings={
-                    "HARASSMENT": "BLOCK_NONE", 
-                    "HATE": "BLOCK_NONE"
-                }
-            )'''
             
             # Extract text from response
             parts = response.candidates[0].content.parts
@@ -331,6 +308,7 @@ Format your response as:
 
 # FOOTER
 st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2.0 Flash</center>", unsafe_allow_html=True)
+
 
 
 
