@@ -2,7 +2,7 @@ import streamlit as st
 import sqlite3
 import time
 import os
-from google import genai
+import google.generativeai as genai
 
 # ==========================================================
 # GEMINI CLIENT SETUP (FIXED)
@@ -554,3 +554,4 @@ Format your response as:
 # FOOTER
 st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2.0 Flash</center>", unsafe_allow_html=True)
 '''
+
