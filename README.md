@@ -1,6 +1,6 @@
 # 1000410_Harini_Priya_Karthikeyan_Smartfarm
 
-🌾 Smart Farming AI Assistant – Kerala Edition
+**🌾 Smart Farming AI Assistant – Kerala Edition**
 
 An intelligent, bilingual (English & Malayalam) AI-powered web application designed to support farmers in Kerala with practical, localized agricultural advice.
 Built using Streamlit, SQLite, and Google Gemini AI, this assistant helps farmers make informed decisions related to crops, soil, pests, weather challenges, and seasonal planning.
