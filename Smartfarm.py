@@ -234,3 +234,4 @@ st.markdown(
     "<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini</center>",
     unsafe_allow_html=True
 )
+
