@@ -4,26 +4,24 @@ import time
 import google.generativeai as genai
 
 # ==========================================================
-# CHECK GEMINI API KEY
-# ==========================================================
-if "GEMINI_API_KEY" not in st.secrets:
-    st.error("❌ GEMINI_API_KEY is missing in Streamlit secrets. Add it in `.streamlit/secrets.toml`.")
-    st.stop()
-
-# ==========================================================
-# GEMINI CLIENT SETUP
-# ==========================================================
-client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
-PRIMARY_MODEL = "gemini-2.5-flash"
-
-# ==========================================================
-# PAGE CONFIG
+# PAGE CONFIG (Must be at the very top)
 # ==========================================================
 st.set_page_config(
     page_title="🌾 Smart Farming AI Assistant",
     page_icon="🌴",
     layout="centered"
 )
+
+# ==========================================================
+# CHECK GEMINI API KEY & SETUP
+# ==========================================================
+if "GEMINI_API_KEY" not in st.secrets:
+    st.error("❌ GEMINI_API_KEY is missing in Streamlit secrets. Add it in the 'Manage App' settings on Streamlit Cloud.")
+    st.stop()
+
+# Corrected Setup for google-generativeai
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+PRIMARY_MODEL = "gemini-1.5-flash" 
 
 # ==========================================================
 # SQLITE DATABASE FUNCTIONS
@@ -80,15 +78,12 @@ init_db()
 # ==========================================================
 st.markdown("""
 <style>
-body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
+.stApp { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
 .stButton>button {
     background-color: #52b788;
     color: white;
     font-weight: bold;
     border-radius: 10px;
-}
-.stButton>button:hover {
-    background-color: #40916c;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -98,11 +93,13 @@ body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
 # ==========================================================
 def get_ai_response(prompt, temperature, max_tokens):
     try:
-        response = client.models.generate_content(
-            model=PRIMARY_MODEL,
-            contents=prompt,
-            temperature=temperature,
-            max_output_tokens=max_tokens
+        model = genai.GenerativeModel(PRIMARY_MODEL)
+        response = model.generate_content(
+            prompt,
+            generation_config=genai.types.GenerationConfig(
+                temperature=temperature,
+                max_output_tokens=max_tokens,
+            )
         )
         return response.text
     except Exception as e:
@@ -116,18 +113,12 @@ temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.5, 0.1)
 max_tokens = 2000
 st.sidebar.markdown(f"**Max Output Tokens:** {max_tokens}")
 st.sidebar.markdown("---")
-st.sidebar.info(
-    "💡 **Tips:**\n"
-    "- Lower temperature = More consistent answers\n"
-    "- Higher tokens = Longer responses\n"
-    "- Allow 3–5s between requests"
-)
 
 # ==========================================================
 # APP HEADER
 # ==========================================================
 st.title("🌴 Smart Farming AI Assistant — Kerala Edition")
-st.caption("Powered by Gemini 2.5 Flash — Accurate, Fast & Bilingual 🌾")
+st.caption("Powered by Gemini 1.5 Flash — Accurate, Fast & Bilingual 🌾")
 
 # ==========================================================
 # LOGIN / SIGN UP
@@ -143,7 +134,7 @@ if "current_user" not in st.session_state:
             if user:
                 st.session_state.current_user = name
                 st.success(f"Welcome back, {name}! 🌴")
-                st.experimental_rerun()
+                st.rerun()
             else:
                 st.error("User not found. Please sign up first.")
 
@@ -165,7 +156,7 @@ if "current_user" not in st.session_state:
                     add_user(name, district, age, language, farming_type, experience)
                     st.session_state.current_user = name
                     st.success("Profile created successfully! 🌿")
-                    st.experimental_rerun()
+                    st.rerun()
 
 # ==========================================================
 # MAIN APP
@@ -185,53 +176,43 @@ if "current_user" in st.session_state:
     }
 
     option = st.radio("Select mode:", ["🧠 Choose Challenge", "✍️ Ask My Own Question"])
-    user_question = (
-        challenges[st.selectbox("Select a challenge:", challenges)]
-        if option == "🧠 Choose Challenge"
-        else st.text_area("Enter your farming question:")
-    )
+    
+    if option == "🧠 Choose Challenge":
+        selected_challenge = st.selectbox("Select a challenge:", list(challenges.keys()))
+        user_question = challenges[selected_challenge]
+    else:
+        user_question = st.text_area("Enter your farming question:")
 
     if st.button("🌱 Get AI Advice"):
         if not user_question.strip():
             st.warning("❗ Please enter or select a question.")
         else:
             prompt = f"""
-You are an agriculture expert for Kerala.
+            You are an agriculture expert for Kerala.
+            Give short, practical farming advice in {user['language']}.
+            Explain reasons briefly. Use bullet points. Max 250 words.
 
-Give short, practical farming advice in {user['language']}.
-Explain reasons briefly.
-Use bullet points.
-Max 250 words.
+            User Info:
+            District: {user['district']}
+            Farming Type: {user['farming_type']}
+            Experience: {user['experience']}
 
-User:
-Name: {user['name']}
-District: {user['district']}
-Farming Type: {user['farming_type']}
-Experience: {user['experience']}
-
-Question: {user_question}
-"""
+            Question: {user_question}
+            """
             with st.spinner("🌿 Generating advisory..."):
                 reply = get_ai_response(prompt, temperature, max_tokens)
-
-            if "⚠️" not in reply:
-                st.success("✅ AI Response Ready!")
-            st.markdown(reply)
+                if "⚠️" not in reply:
+                    st.success("✅ AI Response Ready!")
+                st.markdown(reply)
 
     st.markdown("---")
     col1, col2 = st.columns(2)
-
     with col1:
         if st.button("📚 View My Profile"):
             st.json(user)
-
     with col2:
         if st.button("Logout 🔒"):
             del st.session_state.current_user
-            st.experimental_rerun()
+            st.rerun()
 
-st.markdown(
-    "<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini</center>",
-    unsafe_allow_html=True
-)
-
+st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini</center>", unsafe_allow_html=True)
