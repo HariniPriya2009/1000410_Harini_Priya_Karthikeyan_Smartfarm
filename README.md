@@ -4,7 +4,7 @@
 
 An intelligent, bilingual (English & Malayalam) AI-powered web application designed to support farmers in Kerala with practical, localized agricultural advice.
 Built using Streamlit, SQLite, and Google Gemini AI, this assistant helps farmers make informed decisions related to crops, soil, pests, weather challenges, and seasonal planning.
-Project Overview
+**Project Overview**
 
 Farmers often lack timely, expert guidance tailored to their local conditions.
 
@@ -20,7 +20,7 @@ Secure user profiles for personalized guidance
 
 The system stores farmer details and uses AI-powered reasoning to generate short, actionable recommendations.
 
-Objectives
+**Objectives**
 
 Provide accurate agricultural guidance for Kerala farmers
 
@@ -32,7 +32,7 @@ Offer easy-to-use web interface
 
 Encourage smart, sustainable farming practices
 
-How the AI Works
+**How the AI Works**
 
 Farmer logs in or creates a profile
 
@@ -44,7 +44,7 @@ Gemini AI generates localized farming advice
 
 Output is displayed in a clear, bullet-point format
 
-Language Support
+**Language Support**
 
 English
 
