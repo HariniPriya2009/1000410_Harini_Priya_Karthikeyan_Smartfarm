@@ -1,6 +1,6 @@
 import streamlit as st
 import sqlite3
-from google import genai
+import google.generativeai as genai
 import os
 
 # ==========================================================
@@ -454,4 +454,5 @@ if "current_user" in st.session_state:
                 st.rerun()
 
 st.markdown(f"<center>{get_text(interface_lang, 'footer')}</center>", unsafe_allow_html=True)
+
 
