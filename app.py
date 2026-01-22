@@ -1,199 +1,217 @@
 import streamlit as st
-import sqlite3
-import time
 import google.generativeai as genai
+import json
+import os
+import time
 
-# ==========================================================
-# PAGE CONFIG (MUST be first Streamlit command)
-# ==========================================================
-st.set_page_config(
-    page_title="🌾 Smart Farming AI Assistant",
-    page_icon="🌴",
-    layout="centered"
-)
+# ---------- PAGE CONFIG ----------
+st.set_page_config(page_title="🌾 Smart Farming AI Assistant", page_icon="🌴", layout="centered")
 
-# ==========================================================
-# GEMINI SETUP (via Streamlit Secrets)
-# ==========================================================
-if "GEMINI_API_KEY" not in st.secrets:
-    st.error("❌ GEMINI_API_KEY missing. Add it in Streamlit → Manage App → Secrets.")
-    st.stop()
-
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+# ---------- GEMINI CONFIG ----------
+genai.configure(api_key="YOUR_API_KEY_HERE")
 
 PRIMARY_MODEL = "models/gemini-2.5-flash"
+BACKUP_MODEL = "models/gemini-1.5-flash"  # cheaper + higher free quota
 
-# ==========================================================
-# SQLITE DATABASE
-# ==========================================================
-DB_FILE = "farmers.db"
+USER_FILE = "farmers.json"
 
-def init_db():
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS farmers (
-            name TEXT PRIMARY KEY,
-            district TEXT,
-            age INTEGER,
-            language TEXT,
-            farming_type TEXT,
-            experience TEXT
-        )
-    """)
-    conn.commit()
-    conn.close()
 
-def add_user(name, district, age, language, farming_type, experience):
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT OR REPLACE INTO farmers
-        VALUES (?, ?, ?, ?, ?, ?)
-    """, (name, district, age, language, farming_type, experience))
-    conn.commit()
-    conn.close()
+# ---------- USER FILE HANDLING ----------
+def load_users():
+    if os.path.exists(USER_FILE):
+        with open(USER_FILE, "r") as f:
+            return json.load(f)
+    return {}
 
-def get_user(name):
-    conn = sqlite3.connect(DB_FILE)
-    cur = conn.cursor()
-    cur.execute("SELECT * FROM farmers WHERE name=?", (name,))
-    row = cur.fetchone()
-    conn.close()
-    if row:
-        return {
-            "name": row[0],
-            "district": row[1],
-            "age": row[2],
-            "language": row[3],
-            "farming_type": row[4],
-            "experience": row[5]
-        }
-    return None
+def save_users(data):
+    with open(USER_FILE, "w") as f:
+        json.dump(data, f, indent=4)
 
-init_db()
+users = load_users()
 
-# ==========================================================
-# UI STYLE
-# ==========================================================
+
+# ---------- PAGE STYLE ----------
 st.markdown("""
 <style>
-.stApp { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
+body { background: linear-gradient(135deg, #1b4332, #081c15); color: white; }
+.main {
+    background: rgba(255,255,255,0.1);
+    padding: 2rem;
+    border-radius: 20px;
+    box-shadow: 0 0 20px rgba(255,255,255,0.3);
+}
 .stButton>button {
     background-color: #52b788;
     color: white;
     font-weight: bold;
     border-radius: 10px;
 }
+.stButton>button:hover {
+    background-color: #40916c;
+}
 </style>
 """, unsafe_allow_html=True)
 
-# ==========================================================
-# GEMINI CALL
-# ==========================================================
+
+# ---------- AI CALL FUNCTION (Optimized) ----------
+@st.cache_data(show_spinner=False)
 def get_ai_response(prompt, temperature, max_tokens):
-    time.sleep(1)  # rate-limit safety
+    """
+    This function:
+    ✔ Adds delay to avoid rate limit
+    ✔ Uses cheaper backup model when needed
+    ✔ Handles 429 errors safely
+    ✔ Is cached (same question = no new API call)
+    """
+
+    # Cooldown: avoid hitting per-second limit
+    time.sleep(1.1)
+
+    config = genai.types.GenerationConfig(
+        temperature=temperature,
+        max_output_tokens=max_tokens,
+    )
+
+    # Try primary model
     try:
         model = genai.GenerativeModel(PRIMARY_MODEL)
         response = model.generate_content(
             prompt,
-            generation_config=genai.types.GenerationConfig(
-                temperature=temperature,
-                max_output_tokens=max_tokens
-            )
+            generation_config=config,
+            safety_settings={"HARASSMENT": "BLOCK_NONE", "HATE": "BLOCK_NONE"},
         )
-        return response.text
-    except Exception as e:
-        return f"⚠️ Error: {e}"
+    except Exception:
+        # Fallback to cheaper + high-quota model
+        model = genai.GenerativeModel(BACKUP_MODEL)
+        response = model.generate_content(
+            prompt,
+            generation_config=config,
+            safety_settings={"HARASSMENT": "BLOCK_NONE", "HATE": "BLOCK_NONE"},
+        )
 
-# ==========================================================
-# SIDEBAR SETTINGS
-# ==========================================================
+    # Safely extract text
+    try:
+        if response and response.candidates and response.candidates[0].content.parts:
+            return "".join([
+                part.text for part in response.candidates[0].content.parts
+                if hasattr(part, "text")
+            ])
+    except:
+        pass
+
+    return "⚠️ Gemini could not generate a valid answer. Please try again."
+
+
+# ---------- SIDEBAR SETTINGS ----------
 st.sidebar.header("⚙️ AI Settings")
-temperature = st.sidebar.slider("Creativity", 0.0, 1.0, 0.5, 0.1)
-max_tokens = 1200
-st.sidebar.markdown(f"**Max Tokens:** {max_tokens}")
+temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.5, 0.1)
+max_tokens = st.sidebar.slider("Max Output Tokens", 50, 300, 180, 10)
+st.sidebar.info("💡 Lower temperature = more factual. Higher = more creative!")
 
-# ==========================================================
-# HEADER
-# ==========================================================
+
+# ---------- APP HEADER ----------
 st.title("🌴 Smart Farming AI Assistant — Kerala Edition")
-st.caption("FA-2 | Gemini-powered | Streamlit Deployment 🌾")
+st.caption("Powered by Gemini — Smarter, faster, and bilingual 🌾")
 
-# ==========================================================
-# LOGIN / SIGN UP
-# ==========================================================
+
+# ---------- LOGIN / SIGN UP ----------
 if "current_user" not in st.session_state:
-    choice = st.radio("Login or Sign Up", ["Login", "Sign Up"])
+    st.subheader("👩‍🌾 Login or Sign Up")
+
+    choice = st.radio("Select option:", ["Login", "Sign Up"])
 
     if choice == "Login":
-        name = st.text_input("Name")
+        name = st.text_input("Enter your name:")
         if st.button("Login 🚜"):
-            user = get_user(name)
-            if user:
+            if name in users:
                 st.session_state.current_user = name
+                st.success(f"Welcome back, {name}! 🌴")
                 st.rerun()
             else:
-                st.error("User not found")
+                st.error("User not found. Please sign up first.")
 
     else:
         with st.form("signup"):
-            name = st.text_input("Name")
-            district = st.text_input("District")
-            age = st.number_input("Age", 10, 100)
-            language = st.selectbox("Language", ["English", "Malayalam", "Both"])
-            farming_type = st.selectbox("Farming Type",
-                                        ["Paddy", "Coconut", "Spices", "Vegetables", "Mixed"])
-            experience = st.selectbox("Experience",
-                                      ["Beginner", "Intermediate", "Expert"])
-            submit = st.form_submit_button("Create Profile")
+            st.markdown("### 🧾 Farmer Details")
+            name = st.text_input("Name:")
+            district = st.text_input("District:")
+            age = st.number_input("Age:", 10, 100)
+            language = st.selectbox("Preferred Language:", ["English", "Malayalam", "Both"])
+            farming_type = st.selectbox("Type of Farming:", ["Paddy", "Coconut", "Spices", "Vegetables", "Mixed"])
+            experience = st.selectbox("Experience Level:", ["Beginner", "Intermediate", "Expert"])
+            submit = st.form_submit_button("Create Profile 🌾")
 
             if submit and name:
-                add_user(name, district, age, language, farming_type, experience)
+                users[name] = {
+                    "district": district,
+                    "age": age,
+                    "language": language,
+                    "farming_type": farming_type,
+                    "experience": experience,
+                }
+                save_users(users)
                 st.session_state.current_user = name
+                st.success("Profile saved successfully! 🌿")
                 st.rerun()
 
-# ==========================================================
-# MAIN APP
-# ==========================================================
-if "current_user" in st.session_state:
-    user = get_user(st.session_state.current_user)
 
-    st.markdown(f"### 👋 Hello {user['name']} from {user['district']}")
+# ---------- MAIN APP ----------
+if "current_user" in st.session_state:
+    user = users[st.session_state.current_user]
+
+    st.markdown(f"### 👋 Hello {st.session_state.current_user} from {user['district']}!")
+    st.caption(f"Language: {user['language']} | Experience: {user['experience']} Farmer")
+
+    # ---------- CHALLENGES ----------
+    st.subheader("🌾 Choose a Farming Challenge or Ask Your Own Question")
 
     challenges = {
-        "Waterlogging": "Monsoon floods damage my paddy field every year. What can I do?",
-        "Coconut Pests": "My coconut trees are affected by red palm weevil.",
-        "Soil Acidity": "My soil is acidic. Which crops are suitable?",
-        "Pepper Prices": "Pepper prices keep fluctuating. Should I sell now?",
-        "Seasonal Crops": "It’s September. What should I grow in Kerala?"
+        "Waterlogging & Heavy Rainfall": "Monsoon floods damage my paddy field every year. What can I do?",
+        "Coconut Pests (Red Palm Weevil)": "My coconut trees are affected by red palm weevil pests. How to control them?",
+        "Soil Acidity (Laterite Soil)": "My soil is acidic. Which crops will grow well?",
+        "Market Fluctuations in Spices": "Pepper prices keep changing. Should I sell now?",
+        "Seasonal Crop Choice": "It’s September — what crops are best to grow in Kerala now?",
     }
 
-    mode = st.radio("Mode", ["Choose Challenge", "Ask Own Question"])
+    option = st.radio("Select mode:", ["🧠 Choose from Challenges", "✍️ Type My Own Question"])
 
-    if mode == "Choose Challenge":
-        question = challenges[st.selectbox("Select", challenges.keys())]
+    if option == "🧠 Choose from Challenges":
+        selected_challenge = st.selectbox("Select a challenge:", list(challenges.keys()))
+        user_question = challenges[selected_challenge]
     else:
-        question = st.text_area("Your Question")
+        user_question = st.text_area("Type your question here 👇", placeholder="e.g., How to prevent pest attacks in banana plants?")
 
-    if st.button("🌱 Get AI Advice"):
-        prompt = f"""
-You are an agriculture expert for Kerala farmers.
-Give short, actionable advice with reasons.
-Use bullet points. Simple language.
+    # ---------- AI BUTTON ----------
+    if st.button("🌱 Ask Gemini for Help"):
+        if not user_question.strip():
+            st.warning("Please enter or select a question first!")
+        else:
+            st.markdown("#### 💬 Farmer’s Concern:")
+            st.info(user_question)
 
-Farmer Info:
-District: {user['district']}
+            full_prompt = f"""
+You are an AI farming expert for Kerala.
+User: {st.session_state.current_user} from {user['district']}
+Farming: {user['farming_type']}
 Experience: {user['experience']}
+Respond in {user['language']} with short, practical solutions.
 
-Question: {question}
+Question: {user_question}
+
+Format:
+English: <solution>
+Malayalam: <translation>
 """
-        with st.spinner("Thinking..."):
-            st.markdown(get_ai_response(prompt, temperature, max_tokens))
 
+            with st.spinner("🌿 Preparing your solution..."):
+                reply = get_ai_response(full_prompt, temperature, max_tokens)
+
+            st.success("✅ AI Response Ready!")
+            st.markdown(reply)
+
+    st.markdown("---")
     if st.button("Logout 🔒"):
         del st.session_state.current_user
         st.rerun()
 
-st.markdown("<center>🌾 FA-2 Smart Farming Assistant | Streamlit Cloud</center>",
-            unsafe_allow_html=True)
+st.markdown("<center>🌴 Built for Kerala’s Smart Farmers</center>", unsafe_allow_html=True)
