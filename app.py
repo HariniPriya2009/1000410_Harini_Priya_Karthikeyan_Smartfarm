@@ -1,10 +1,10 @@
 import streamlit as st
 import sqlite3
-import google.generativeai as genai
+from google import genai
 import os
 
 # ==========================================================
-# PAGE CONFIG (Must be at the very top)
+# PAGE CONFIG
 # ==========================================================
 st.set_page_config(
     page_title="🌾 Smart Farming AI Assistant",
@@ -13,41 +13,38 @@ st.set_page_config(
 )
 
 # ==========================================================
-# CHECK GEMINI API KEY & SETUP
+# GEMINI API KEY
 # ==========================================================
-# Try to get API key from multiple sources
-API_KEY = None
-
-# Check environment variable
 API_KEY = os.getenv("GEMINI_API_KEY")
 
-# Check Streamlit secrets
 if not API_KEY and "GEMINI_API_KEY" in st.secrets:
     API_KEY = st.secrets["GEMINI_API_KEY"]
 
-# Allow manual input as fallback
 if not API_KEY:
-    st.sidebar.warning("⚠️ GEMINI_API_KEY not found. Please enter it below.")
-    API_KEY = st.sidebar.text_input("Enter your Gemini API Key:", type="password")
+    st.sidebar.warning("⚠️ GEMINI_API_KEY not found.")
+    API_KEY = st.sidebar.text_input("Enter Gemini API Key", type="password")
 
 if not API_KEY:
-    st.error("❌ GEMINI_API_KEY is required. Please add it to your environment variables, Streamlit secrets, or enter it in the sidebar.")
-    st.info("💡 To get an API key, visit: https://makersuite.google.com/app/apikey")
+    st.error("❌ GEMINI_API_KEY is required.")
     st.stop()
 
-# Configure Gemini API
+# ==========================================================
+# GEMINI CLIENT (NEW SDK)
+# ==========================================================
 try:
-    genai.configure(api_key=API_KEY)
-    PRIMARY_MODEL = "gemini-1.5-flash"
-    
-    # Test the API connection
-    model = genai.GenerativeModel(PRIMARY_MODEL)
-    test_response = model.generate_content("Hello")
+    client = genai.Client(api_key=API_KEY)
+
+    test_response = client.models.generate_content(
+        model="gemini-1.5-flash",
+        contents="Hello"
+    )
+
     st.sidebar.success("✅ Gemini API connected successfully!")
+
 except Exception as e:
-    st.sidebar.error(f"❌ Failed to connect to Gemini API: {e}")
-    st.error("⚠️ Could not connect to Gemini API. Please check your API key and try again.")
+    st.sidebar.error(f"❌ Gemini connection failed: {e}")
     st.stop()
+
 
 # ==========================================================
 # SQLITE DATABASE FUNCTIONS
@@ -457,3 +454,4 @@ if "current_user" in st.session_state:
                 st.rerun()
 
 st.markdown(f"<center>{get_text(interface_lang, 'footer')}</center>", unsafe_allow_html=True)
+
