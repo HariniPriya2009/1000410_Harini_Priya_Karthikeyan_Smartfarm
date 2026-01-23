@@ -1,6 +1,5 @@
 import streamlit as st
 import google.generativeai as genai
-
 import sqlite3
 import time
 
@@ -14,11 +13,11 @@ st.set_page_config(
 )
 
 # ==========================================================
-# GEMINI CONFIG
+# GEMINI CONFIG - Using Streamlit Secrets
 # ==========================================================
-genai.configure(api_key="AlzaaSyBiCxxdROXpaNOBiUD10_f1k-OKF-aYdQQ")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-PRIMARY_MODEL = "models/gemini-2.5-flash"   # More stable model
+PRIMARY_MODEL = "models/gemini-2.0-flash"  # Updated to gemini-2.0-flash
 
 
 # ==========================================================
@@ -298,4 +297,5 @@ Format your response as:
 
 # FOOTER
 st.markdown("<center>🌴 Built for Kerala's Smart Farmers | Powered by Gemini 2.0 Flash</center>", unsafe_allow_html=True)
+
 
