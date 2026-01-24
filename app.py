@@ -118,16 +118,16 @@ LANGUAGE_OPTIONS = [
 st.markdown("""
 <style>
     .main {
-        background: linear-gradient(135deg, #1b4332 0%, #081c15 100%);
+        background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
     }
     .stApp {
-        background-color: #1b4332;
+        background-color: #2d6a4f;
     }
     h1, h2, h3 {
         color: #ffffff;
     }
     .stButton>button {
-        background-color: #52b788;
+        background-color: #40916c;
         color: white;
         font-weight: bold;
         border-radius: 10px;
@@ -135,25 +135,25 @@ st.markdown("""
         transition: all 0.3s;
     }
     .stButton>button:hover {
-        background-color: #40916c;
+        background-color: #52b788;
         transform: translateY(-2px);
     }
     .chat-container {
-        background-color: rgba(8, 28, 21, 0.6);
-        border: 1px solid #52b788;
+        background-color: rgba(11, 46, 33, 0.6);
+        border: 1px solid #40916c;
         border-radius: 10px;
         padding: 20px;
         margin: 10px 0;
     }
     .user-message {
-        background-color: rgba(82, 183, 136, 0.2);
-        border-left: 4px solid #52b788;
+        background-color: rgba(64, 145, 108, 0.25);
+        border-left: 4px solid #40916c;
         padding: 15px;
         margin: 10px 0;
         border-radius: 5px;
     }
     .ai-message {
-        background-color: rgba(255, 255, 255, 0.1);
+        background-color: rgba(149, 213, 178, 0.15);
         border-left: 4px solid #95d5b2;
         padding: 15px;
         margin: 10px 0;
