@@ -209,8 +209,7 @@ def get_ai_response(prompt, user_info):
     - Add specific Kerala references when applicable
     - Keep language simple and farmer-friendly
     - Maximum 400 words
-    - If bilingual is selected, provide both English and Malayalam
-    - If it is bilingual it should provide both english and malayalam"""
+    - If bilingual is selected, provide both English and Malayalam"""
    
     config = genai.types.GenerationConfig(
         temperature=AI_TEMPERATURE,
@@ -439,6 +438,7 @@ st.markdown("<center>", unsafe_allow_html=True)
 
 
 st.markdown("</center>", unsafe_allow_html=True)
+
 
 
 
