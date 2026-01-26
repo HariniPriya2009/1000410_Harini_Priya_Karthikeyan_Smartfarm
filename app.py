@@ -328,7 +328,6 @@ if "chat_started" in st.session_state and st.session_state.chat_started:
 # Header
 st.title("🌴 Smart Farming AI Assistant — Kerala Edition")
 st.caption("കേരള കർഷകർക്ക് വേണ്ടി | For Kerala Farmers")
-st.markdown("### 🌾 Powered by Gemini 2.0 Flash — Bilingual Support (English & Malayalam)")
 
 # Chat interface
 if "chat_started" in st.session_state and st.session_state.chat_started:
@@ -438,5 +437,6 @@ st.markdown("<center>", unsafe_allow_html=True)
 
 
 st.markdown("</center>", unsafe_allow_html=True)
+
 
 
