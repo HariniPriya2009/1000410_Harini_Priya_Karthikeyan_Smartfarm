@@ -19,7 +19,7 @@ st.set_page_config(
 # ==========================================================
 genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 
-PRIMARY_MODEL = "gemini-1.5-flash"
+PRIMARY_MODEL = "gemini-2.5-flash"
 
 # Fixed AI Configuration (hidden from UI)
 AI_TEMPERATURE = 0.7  # Balanced creativity for farming advice
@@ -458,4 +458,5 @@ with col3:
     st.markdown("### 📊 Market Information")
     st.markdown("- [Spices Board India](https://www.indianspices.com/)")
     st.markdown("- [Agmarknet Price Info](https://agmarknet.gov.in/)")
+
 
