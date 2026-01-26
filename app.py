@@ -118,11 +118,12 @@ LANGUAGE_OPTIONS = [
 st.markdown("""
 <style>
     .main {
-        background: linear-gradient(135deg, #2d6a4f 0%, #1b4332 100%);
+    background: linear-gradient(135deg, #f1faee 0%, #e9f5db 100%);
     }
     .stApp {
-        background-color: #2d6a4f;
+    background-color: #f1faee;
     }
+
     h1, h2, h3 {
         color: #ffffff;
     }
