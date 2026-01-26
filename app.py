@@ -435,7 +435,8 @@ else:
 # FOOTER
 st.markdown("---")
 st.markdown("<center>", unsafe_allow_html=True)
-st.markdown("### 🌴 Built for Kerala's Smart Farmers")
-st.markdown("**Powered by Gemini 2.0 Flash** | Bilingual Support (English & Malayalam)")
+
+
 st.markdown("</center>", unsafe_allow_html=True)
+
 
