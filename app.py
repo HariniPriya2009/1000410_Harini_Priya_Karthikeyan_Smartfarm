@@ -23,7 +23,7 @@ PRIMARY_MODEL = "gemini-2.0-flash-exp"
 
 # Fixed AI Configuration (hidden from UI)
 AI_TEMPERATURE = 0.7  # Balanced creativity for farming advice
-AI_MAX_TOKENS = 2000   # Detailed responses
+AI_MAX_TOKENS = 3000   # Detailed responses
 
 
 # ==========================================================
