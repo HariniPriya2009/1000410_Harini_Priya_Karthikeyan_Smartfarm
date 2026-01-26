@@ -54,3 +54,4 @@ Both (based on user preference)
 
 The AI adapts responses to ensure simple, easy-to-understand language suitable for farmers.
 
+App flow canva link: https://www.canva.com/design/DAG_fnHsUik/NO8m67p6RUAspETdIKKr-Q/view?utm_content=DAG_fnHsUik&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=hc3b0d86319
