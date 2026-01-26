@@ -439,24 +439,3 @@ st.markdown("### 🌴 Built for Kerala's Smart Farmers")
 st.markdown("**Powered by Gemini 2.0 Flash** | Bilingual Support (English & Malayalam)")
 st.markdown("</center>", unsafe_allow_html=True)
 
-# Helpful Resources
-st.markdown("---")
-st.markdown("## 📚 Helpful Resources")
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("### 🏛️ Official Sources")
-    st.markdown("- [Kerala Agricultural University](https://kau.in/)")
-    st.markdown("- [Krishi Vigyan Kendra](https://www.kvk.org.in/)")
-    st.markdown("- [Kerala Agriculture Dept](https://keralaagriculture.gov.in/)")
-
-with col2:
-    st.markdown("### 🌤️ Weather & Climate")
-    st.markdown("- [IMD Kerala](https://mausam.imd.gov.in/imd_latest/contents/)")
-
-with col3:
-    st.markdown("### 📊 Market Information")
-    st.markdown("- [Spices Board India](https://www.indianspices.com/)")
-    st.markdown("- [Agmarknet Price Info](https://agmarknet.gov.in/)")
-
-
